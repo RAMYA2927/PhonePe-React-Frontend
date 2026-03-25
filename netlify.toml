@@ -10,6 +10,7 @@
   from = "/api/*"
   to = "https://phonepay-api-backend-1.onrender.com/api/:splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
