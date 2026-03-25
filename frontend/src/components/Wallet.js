@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {fetchWallet, saveWallet} from "../services/api";
 
@@ -9,22 +9,27 @@ function Wallet(){
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadWallet = useCallback(async ()=>{
-    try{
-      setLoading(true);
-      const response = await fetchWallet(storedWallet?.userName || storedWallet?.phoneNumber);
-      const walletData = response.data ?? response;
-      setWallet(walletData);
-      saveWallet(walletData);
-      setError("");
-    }catch(err){
-      setError(err?.message || "Unable to fetch wallet");
-    }finally{
-      setLoading(false);
+  useEffect(()=>{
+    let isMounted = true;
+    async function loadWalletData() {
+      try{
+        if (isMounted) setLoading(true);
+        const response = await fetchWallet(storedWallet?.userName || storedWallet?.phoneNumber);
+        const walletData = response.data ?? response;
+        if (isMounted) {
+          setWallet(walletData);
+          saveWallet(walletData);
+          setError("");
+        }
+      }catch(err){
+        if (isMounted) setError(err?.message || "Unable to fetch wallet");
+      }finally{
+        if (isMounted) setLoading(false);
+      }
     }
+    loadWalletData();
+    return () => { isMounted = false; };
   }, [storedWallet]);
-
-  useEffect(()=>{ loadWallet(); },[loadWallet]);
 
   const balance = wallet?.balance ?? wallet?.data?.balance ?? 0;
 
