@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useNavigate} from "react-router-dom";
 import {fetchWallet, saveWallet} from "../services/api";
 
@@ -9,7 +9,7 @@ function Wallet(){
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadWallet = async ()=>{
+  const loadWallet = useCallback(async ()=>{
     try{
       setLoading(true);
       const response = await fetchWallet(storedWallet?.userName || storedWallet?.phoneNumber);
@@ -22,9 +22,9 @@ function Wallet(){
     }finally{
       setLoading(false);
     }
-  }
+  }, [storedWallet]);
 
-  useEffect(()=>{ loadWallet(); },[]);
+  useEffect(()=>{ loadWallet(); },[loadWallet]);
 
   const balance = wallet?.balance ?? wallet?.data?.balance ?? 0;
 
