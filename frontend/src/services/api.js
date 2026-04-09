@@ -1,9 +1,18 @@
 import axios from "axios";
 
-export const API_BASE = process.env.REACT_APP_API_URL || "";
+const normalizeApiUrl = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const cleaned = value.trim().replace(/\/+$|\s+$/g, "");
+  return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+};
+
+export const API_BASE = normalizeApiUrl(process.env.REACT_APP_API_URL || "");
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE || "/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -109,7 +118,7 @@ export const saveWallet = (wallet) => {
 };
 
 export const registerUser = ({ name, upi, phone, phoneNumber, pin, initialBalance }) =>
-  api.post("/api/auth/register", {
+  api.post("/auth/register", {
     name,
     upi,
     phone: normalizePhone(phone, phoneNumber),
@@ -130,14 +139,14 @@ const resolveWalletUserName = async (identifier) => {
 };
 
 export const loginUser = async ({ upi, pin }) => {
-  return api.post("/api/auth/login", {
+  return api.post("/auth/login", {
     upi,
     pin,
   });
 };
 
 export const updateUserPin = ({ upi, oldPin, newPin }) =>
-  api.post("/api/auth/update-pin", {
+  api.post("/auth/update-pin", {
     upi,
     oldPin,
     newPin,
@@ -149,7 +158,7 @@ export const fetchWallet = async (identifier) => {
 
   if (key) {
     try {
-      return await api.get(`/api/wallets/${encodeURIComponent(key)}`);
+      return await api.get(`/wallets/${encodeURIComponent(key)}`);
     } catch (error) {
       const message = error?.message || "";
       const isNotFound =
@@ -163,7 +172,7 @@ export const fetchWallet = async (identifier) => {
     }
   }
 
-  const response = await api.get("/api/wallets");
+  const response = await api.get("/wallets");
   const wallets = response.data ?? response;
 
   if (!key) {
@@ -213,7 +222,7 @@ export const transferMoney = ({
       ? Promise.resolve(toUserName)
       : resolveWalletUserName(toPhone),
   ]).then(([sender, receiver]) =>
-    api.post("/api/payments/transfer", {
+    api.post("/payments/transfer", {
       sender,
       receiver,
       fromPhone,
@@ -228,7 +237,7 @@ export const transferMoney = ({
 
 export const fetchHistory = (identifier) => {
   const key = getPrimaryIdentifier(identifier);
-  return api.get("/api/payments/history", {
+  return api.get("/payments/history", {
     params: key ? { userName: key } : undefined,
   });
 };
