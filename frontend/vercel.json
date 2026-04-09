@@ -4,13 +4,9 @@
   "installCommand": "cd frontend && npm install",
   "framework": "create-react-app",
   "env": {
-    "REACT_APP_API_URL": "https://phonepay-api-backend-1.onrender.com"
+    "REACT_APP_API_URL": ""
   },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://phonepay-api-backend-1.onrender.com/api/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

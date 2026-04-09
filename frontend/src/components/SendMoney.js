@@ -5,7 +5,7 @@ import {refreshHistory, refreshWallet, transferMoney} from "../services/api";
 function SendMoney(){
 
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const wallet = JSON.parse(localStorage.getItem("wallet") || "null");
 
   const [form, setForm] = useState({
     toPhone: "",
@@ -43,17 +43,18 @@ function SendMoney(){
     try{
       setLoading(true);
       const transferResponse = await transferMoney({
-        fromPhone: user?.phone,
-        fromUserName: user?.userName,
+        fromPhone: wallet?.phone,
+        fromUserName: wallet?.userName,
         toPhone: form.toPhone,
         amount: amountNum,
         note: form.note,
         pin: form.pin
       });
-      if (user?.userName || user?.phone) {
+      const identifier = wallet?.userName || wallet?.phone || wallet?.phoneNumber;
+      if (identifier) {
         await Promise.all([
-          refreshWallet(user.userName || user.phone),
-          refreshHistory(user.userName || user.phone),
+          refreshWallet(identifier),
+          refreshHistory(identifier),
         ]);
       }
       setStatus({

@@ -4,9 +4,8 @@ export const API_BASE = process.env.REACT_APP_API_URL || "";
 
 const api = axios.create({
   baseURL: API_BASE,
-  headers: { 
+  headers: {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*"
   },
 });
 
@@ -44,21 +43,34 @@ api.interceptors.request.use((config) => {
 
 const unwrapApiResponse = (response) => {
   const res = response?.data;
-  if (!res || typeof res !== "object") {
+  if (res == null) {
     throw new Error("Invalid server response");
   }
 
-  if (!("success" in res) || !("message" in res) || !("timestamp" in res)) {
-    throw new Error("Unexpected API response shape");
+  if (typeof res === "object" && res !== null) {
+    if ("success" in res) {
+      if (res.success === false) {
+        const err = new Error(res.message || "Request failed");
+        err.response = response;
+        throw err;
+      }
+      response.data = res.data ?? res;
+      return response;
+    }
+
+    if ("status" in res && "data" in res) {
+      if (Number(res.status) >= 400) {
+        const err = new Error(res.message || `Request failed with status ${res.status}`);
+        err.response = response;
+        throw err;
+      }
+      response.data = res.data;
+      return response;
+    }
   }
 
-  if (res.success === false) {
-    const err = new Error(res.message || "Request failed");
-    err.response = response;
-    throw err;
-  }
-
-  return res;
+  response.data = res;
+  return response;
 };
 
 api.interceptors.response.use(

@@ -1,28 +1,30 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {fetchBalance} from "../services/api";
+import {fetchWallet} from "../services/api";
 
 function Balance(){
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const wallet = JSON.parse(localStorage.getItem("wallet") || "null");
 
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadBalance = async ()=>{
-    if(!user?.phone){
-      setError("Missing phone on user profile.");
+    const identifier = wallet?.userName || wallet?.phoneNumber || wallet?.phone;
+    if(!identifier){
+      setError("Missing wallet identifier.");
       setLoading(false);
       return;
     }
     try{
       setLoading(true);
-      const res = await fetchBalance(user.phone);
-      setBalance(res.data?.balance ?? res.data);
+      const res = await fetchWallet(identifier);
+      const walletData = res.data ?? res;
+      setBalance(walletData?.balance ?? 0);
       setError("");
     }catch(err){
-      setError(err?.response?.data?.message || "Unable to fetch balance");
+      setError(err?.response?.data?.message || err?.message || "Unable to fetch balance");
     }finally{
       setLoading(false);
     }
